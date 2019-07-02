@@ -9,16 +9,18 @@ import kotlinx.android.synthetic.main.item.view.*
 
 class ItemAdapter : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
 
+    val stories = mutableListOf<Story>()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item, parent, false))
     }
 
     override fun getItemCount(): Int {
-        return 10
+        return stories.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.containerView.title.text = "My YC app: Dropbox - Throw away your USB drive"
+        holder.containerView.title.text = stories[position].title
     }
 
     class ViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer
