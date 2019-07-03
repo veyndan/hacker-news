@@ -3,7 +3,12 @@ package com.veyndan.hackernews
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
+import com.jakewharton.rxbinding3.view.clicks
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item.view.*
 import okhttp3.HttpUrl
@@ -15,10 +20,24 @@ class ItemAdapter : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
 
     val stories = mutableListOf<Story>()
 
+    private val disposables = CompositeDisposable()
+
     private val prettyTime = PrettyTime()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item, parent, false))
+        val inflater = LayoutInflater.from(parent.context)
+        val holder = ViewHolder(inflater.inflate(R.layout.item, parent, false))
+        disposables += holder.containerView.clicks()
+            .subscribe {
+                val url = stories[holder.adapterPosition].url.toUri()
+                val customTabsIntent = CustomTabsIntent.Builder().build()
+                customTabsIntent.launchUrl(parent.context, url)
+            }
+        return holder
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        disposables.clear()
     }
 
     override fun getItemCount(): Int {
@@ -39,5 +58,7 @@ class ItemAdapter : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
         )
     }
 
-    class ViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer
+    class ViewHolder(
+        override val containerView: View
+    ) : RecyclerView.ViewHolder(containerView), LayoutContainer
 }
