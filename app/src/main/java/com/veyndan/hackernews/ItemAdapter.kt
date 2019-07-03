@@ -29,9 +29,15 @@ class ItemAdapter : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
         val holder = ViewHolder(inflater.inflate(R.layout.item, parent, false))
         disposables += holder.containerView.clicks()
             .subscribe {
-                val url = stories[holder.adapterPosition].url.toUri()
-                val customTabsIntent = CustomTabsIntent.Builder().build()
-                customTabsIntent.launchUrl(parent.context, url)
+                val story = stories[holder.adapterPosition]
+
+                when (val content = story.content()) {
+                    is Content.Url -> {
+                        val url = content.url.toUri()
+                        val customTabsIntent = CustomTabsIntent.Builder().build()
+                        customTabsIntent.launchUrl(parent.context, url)
+                    }
+                }
             }
         return holder
     }
@@ -49,7 +55,10 @@ class ItemAdapter : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
         val story = stories[position]
 
         holder.containerView.title.text = story.title
-        holder.containerView.url.text = HttpUrl.get(story.url).host()
+        holder.containerView.url.text = when (val content = story.content()) {
+            is Content.Url -> HttpUrl.get(content.url).host()
+            is Content.Text -> "news.ycombinator.com"
+        }
         holder.containerView.caption.text = context.getString(
             R.string.item_caption,
             story.descendants,
